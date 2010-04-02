@@ -9,6 +9,7 @@ from xml.sax.handler import feature_namespaces
 from xml.sax.handler import ContentHandler
 import traceback
 
+
 def formulator_strings(dir, domain):
     catalog = {}
     for filename in find_files(dir, '*.form'):
@@ -21,7 +22,9 @@ def formulator_strings(dir, domain):
 
 TRANSLATABLE_PROPERTIES = ['title', 'description']
 
+
 class FormulatorXMLHandler(ContentHandler):
+
     def __init__(self, filepath, catalog):
         self._catalog = catalog
         self._tags = {}
@@ -82,6 +85,7 @@ class FormulatorXMLHandler(ContentHandler):
     def characters(self, chrs):
         self._prev_characters += chrs
 
+
 def extract_ids(filename, catalog):
     handler = FormulatorXMLHandler(filename, catalog)
     parser = xml.sax.make_parser()
@@ -91,18 +95,4 @@ def extract_ids(filename, catalog):
     f = open(filename, 'r')
     parser.parse(f)
     f.close()
-
-def main():
-    catalog = {}
-    extract_ids(
-        '/home/faassen/working/instances27/Test273Zope/Products/Silva/views/add/File/form.form',
-        catalog)
-    for key, value in catalog.items():
-        print key
-        for v in value:
-            print "  ",  v
-        print
-
-if __name__ == '__main__':
-    main()
 

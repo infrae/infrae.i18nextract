@@ -2,7 +2,7 @@
 # See also LICENSE.txt
 # $Id$
 
-import os, sys
+import os
 from zope.configuration.name import resolve
 from zope.app.locales.extract import POTMaker, POTEntry, py_strings, tal_strings
 from infrae.i18nextract.formulator_extract import formulator_strings

@@ -21,11 +21,9 @@ class Recipe(object):
         self.buildout = buildout
         self.name = name
         self.options = options
-        if 'eggs' not in self.options:
-            self.options['eggs'] = ''
-        self.options['eggs'] = self.options['eggs'] + \
+        self.options['eggs'] = self.options.get('eggs', '') + '\n' + \
             '\n '.join(SCRIPT_REQUIRES) + \
-            '\n' + options['packages']
+            '\n ' + options['packages']
         self.packages = filter(lambda v: v, map(
                 lambda s: s.strip(), options['packages'].split('\n')))
         self.output_dir = options['output'].strip()
