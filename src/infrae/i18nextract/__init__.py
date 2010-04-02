@@ -9,7 +9,7 @@ import zc.buildout.easy_install
 SCRIPT_REQUIRES = [
     'zope.configuration',
     'zope.app.locales [extract]',
-    'zope.i18n',
+    'zope.i18nmessageid',
     'infrae.i18nextract']
 
 
