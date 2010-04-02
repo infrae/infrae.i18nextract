@@ -1,12 +1,19 @@
+# Copyright (c) 2010 Infrae. All rights reserved.
+# See also LICENSE.txt
+# $Id$
+
 from zope.app.locales.extract import find_files
-from zope.i18n.messageid import MessageID
+from zope.i18nmessageid import Message
 import xml.sax
 from xml.sax.handler import feature_namespaces
 from xml.sax.handler import ContentHandler
 import traceback
 
+TRANSLATABLE_PROPERTIES = ['title', 'description']
+
 class NonMetadataXMLError(Exception):
     pass
+
 
 def metadata_strings(dir, domain):
     catalog = {}
@@ -25,9 +32,10 @@ def metadata_strings(dir, domain):
             traceback.print_exc()
     return catalog
 
-TRANSLATABLE_PROPERTIES = ['title', 'description']
+
 
 class MetadataXMLHandler(ContentHandler):
+
     def __init__(self, filepath, catalog, i18n_domain):
         self._catalog = catalog
         self._tags = {}
@@ -37,18 +45,18 @@ class MetadataXMLHandler(ContentHandler):
         self._locator = None
         self._filepath = filepath
         self._i18n_domain = i18n_domain
-        
+
     def setDocumentLocator(self, locator):
         self._locator = locator
 
     def isInTag(self, name):
         return self._tags.has_key((None, name))
-    
+
     def enterTag(self, name, attrs):
         self._tags[name] = True
         self._stack.append(name)
         self._attr_stack.append(attrs)
-        
+
     def exitTag(self, name):
         del self._tags[name]
         self._stack.pop()
@@ -60,7 +68,7 @@ class MetadataXMLHandler(ContentHandler):
 
     def getAttrValue(self, name):
         return self._attr_stack[-1].get((None, name))
-    
+
     def startElementNS(self, name, qname, attrs):
         self.enterTag(name, attrs)
         if not self.isInTag('metadata_set'):
@@ -68,8 +76,8 @@ class MetadataXMLHandler(ContentHandler):
         if self.isInTag('field_values') and self.isInTag('value'):
             for name in TRANSLATABLE_PROPERTIES:
                 if self.hasAttrValue('key', name):
-                    message_id = MessageID(self.getAttrValue('value'),
-                                           self._i18n_domain)
+                    message_id = Message(self.getAttrValue('value'),
+                                         domain=self._i18n_domain)
                     if not self._catalog.has_key(message_id):
                         self._catalog[message_id] = []
                     number = self._locator.getLineNumber()
@@ -77,7 +85,8 @@ class MetadataXMLHandler(ContentHandler):
 
     def endElementNS(self, name, qname):
         self.exitTag(name)
-     
+
+
 def extract_ids(filename, catalog, i18n_domain):
     handler = MetadataXMLHandler(filename, catalog, i18n_domain)
     parser = xml.sax.make_parser()
@@ -87,18 +96,5 @@ def extract_ids(filename, catalog, i18n_domain):
     f = open(filename, 'r')
     parser.parse(f)
     f.close()
-    
-def main():
-    catalog = {}
-    extract_ids(
-        '/home/faassen/working/instances27/Test273Zope/Products/Silva/doc/silva-extra.xml',
-        catalog, 'silva')
-    for key, value in catalog.items():
-        print key
-        for v in value:
-            print "  ",  v
-        print
-        
-if __name__ == '__main__':
-    main()
-    
+
+

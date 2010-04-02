@@ -1,4 +1,5 @@
-# Copyright (c) 2007-2008 Infrae. All rights reserved.
+# Copyright (c) 2010 Infrae. All rights reserved.
+# See also LICENSE.txt
 # $Id$
 
 from setuptools import setup, find_packages
@@ -22,12 +23,15 @@ setup(
         'Framework :: Buildout',
         'License :: OSI Approved :: Zope Public License',
         'Topic :: Software Development :: Version Control',
-    ],
-    packages=find_packages(),
+        ],
+    package_dir={'': 'src'},
+    packages=find_packages('src'),
     namespace_packages = ['infrae'],
     install_requires = [
         'zc.buildout',
+        'zc.recipe.egg',
         'setuptools'],
     entry_points = {
         'zc.buildout': ['default = %s:Recipe' % name],
-)
+        }
+    )
