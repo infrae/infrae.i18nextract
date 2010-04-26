@@ -1,10 +1,13 @@
 Changes
 =======
 
-1.1 (unreleased)
+1.1 (2010-04-26)
 ----------------
 
-* ...
+* Add support for ``extra-paths`` so the recipe can be used with older
+  Zope version in buildout.
+
+* Add a script to merge translations.
 
 1.0 (2010-04-02)
 ----------------

@@ -3,6 +3,8 @@
 # $Id$
 
 import os
+from optparse import OptionParser
+
 from zope.configuration.name import resolve
 from zope.app.locales.extract import POTMaker, POTEntry, py_strings, tal_strings
 from infrae.i18nextract.formulator_extract import formulator_strings
@@ -30,12 +32,35 @@ class MultiplePOTMaker(POTMaker):
         return '1.0'
 
 
-def extract(packages, output_dir, domain):
+def extract(packages, output_dir, output_package, domain):
     """Extract i18n strings
     """
+    parser = OptionParser()
+    parser.add_option(
+        "-o", "--output", dest="output_dir",
+        help="alternate output directory for the extracted file")
+    parser.add_option(
+        "-p", "--package", action="store_true", dest="output_package",
+        help="extract to the output package")
+    (options, args) = parser.parse_args()
 
     output_file = domain + '.pot'
-    if output_dir:
+    if options.output_dir:
+        if not os.path.exists(options.output_dir):
+            print "Selected directory doesn't exists: %s" % options.output_dir
+            return
+        output_file = os.path.join(options.output_dir, output_file)
+    elif options.output_package:
+        if not output_package:
+            print "No output package selected."
+            return
+        python_package = resolve(output_package)
+        path = os.path.join(os.path.dirname(python_package.__file__), 'i18n')
+        if not os.path.exists(path):
+            print "Selected package doesn't have translations: %s" % path
+            return
+        output_file = os.path.join(path, output_file)
+    elif output_dir:
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
         output_file = os.path.join(output_dir, output_file)
