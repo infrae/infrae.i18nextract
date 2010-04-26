@@ -20,3 +20,4 @@ Exemple in buildout::
   output-package = silva.translations
   domain = silva
   extra-paths = ${zope2:location}/lib/python
+
