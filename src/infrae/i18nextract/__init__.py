@@ -27,7 +27,7 @@ class Recipe(object):
             '\n ' + options.get('output-package', '')
         self.packages = filter(lambda v: v, map(
                 lambda s: s.strip(), options['packages'].split('\n')))
-        self.output_dir = options['output'].strip()
+        self.output_dir = options.get('output', '').strip()
         self.output_package = options.get('output-package', '').strip()
         self.domain = options.get('domain', 'silva').strip()
         paths = [p.strip() for p in options.get('extra_paths', '').split('\n')]
