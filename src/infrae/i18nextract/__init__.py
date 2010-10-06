@@ -30,7 +30,6 @@ class Recipe(object):
         self.output_dir = options.get('output', '').strip()
         self.output_package = options.get('output-package', '').strip()
         self.domain = options.get('domain', 'silva').strip()
-        paths = [p.strip() for p in options.get('extra_paths', '').split('\n')]
         self.egg = zc.recipe.egg.Egg(buildout, name, options)
 
     def install(self):
@@ -58,8 +57,8 @@ class Recipe(object):
 
         scripts.extend(
             zc.buildout.easy_install.scripts(
-                [('%s-merge'% self.name,
-                  'infrae.i18nextract.merge',
+                [('%s-manage'% self.name,
+                  'infrae.i18nextract.manage',
                   'egg_entry_point')],
                 ws, self.options['executable'],
                 self.buildout['buildout']['bin-directory'],

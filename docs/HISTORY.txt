@@ -1,10 +1,14 @@
 Changes
 =======
 
-1.2 (unreleased)
+1.2 (2010-10-06)
 ----------------
 
-* ...
+* Rename the merge script into manage. Add an option to compile
+  translation files.
+
+* Fix logging output that was wrong when the translation contained
+  dots.
 
 1.1 (2010-04-26)
 ----------------
