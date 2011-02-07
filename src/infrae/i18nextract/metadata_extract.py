@@ -25,7 +25,7 @@ def metadata_strings(dir, domain):
         try:
             try:
                 extract_ids(filename, catalog, domain)
-            except NonMetadataXMLError:
+            except (NonMetadataXMLError, xml.sax.SAXParseException):
                 pass
         except: # Hee hee, I love bare excepts!
             print 'There was an error processing', filename
