@@ -9,6 +9,8 @@ from zope.configuration.name import resolve
 from zope.app.locales.extract import POTMaker, POTEntry, py_strings, tal_strings
 from infrae.i18nextract.formulator_extract import formulator_strings
 from infrae.i18nextract.metadata_extract import metadata_strings
+from infrae.i18nextract.utils import load_products
+
 
 class MultiplePOTMaker(POTMaker):
     """This class inserts sets of strings into a POT file.
@@ -32,7 +34,7 @@ class MultiplePOTMaker(POTMaker):
         return '1.0'
 
 
-def extract(packages, output_dir, output_package, domain):
+def extract(packages, output_dir, output_package, domain, products):
     """Extract i18n strings
     """
     parser = OptionParser()
@@ -43,6 +45,9 @@ def extract(packages, output_dir, output_package, domain):
         "-p", "--package", action="store_true", dest="output_package",
         help="extract to the output package")
     (options, args) = parser.parse_args()
+
+    if products:
+        load_products(products)
 
     output_file = domain + '.pot'
     if options.output_dir:

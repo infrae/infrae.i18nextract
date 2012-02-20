@@ -38,6 +38,11 @@ Options
 `domain`
    Translation domain to use.
 
+`zope-products`
+   List of directories that contains Zope Products (Python packages
+   that must loaded using the import path ``Products`` rather than
+   their own).
+
 `extra-paths`
    Extra python path to add in order to able to load the Python code
    to extract translations strings from it.

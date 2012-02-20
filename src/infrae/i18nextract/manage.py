@@ -7,6 +7,7 @@ import os
 import re
 
 from zope.configuration.name import resolve
+from infrae.i18nextract.utils import load_products
 
 
 def process_files(path, options):
@@ -53,10 +54,9 @@ def process_files(path, options):
                     os.system('msgfmt -o %s %s' % (compiled_filename, filename))
 
 
-def merge(output_package):
+def merge(output_package, products):
     """Merge translations for the given packages.
     """
-
     parser = OptionParser()
     parser.add_option(
         "-p", "--path", dest="path",
@@ -72,6 +72,8 @@ def merge(output_package):
     if options.path:
         process_files(options.path, options)
     else:
+        if products:
+            load_products(products)
         python_package = resolve(output_package)
         path = os.path.dirname(python_package.__file__)
         for i18n_part in ('i18n', 'locales'):

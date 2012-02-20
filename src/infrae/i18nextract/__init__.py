@@ -13,6 +13,12 @@ SCRIPT_REQUIRES = [
     'infrae.i18nextract']
 
 
+def string_to_lines(string):
+    return filter(
+        lambda v: v, map(
+            lambda s: s.strip(), string.split('\n')))
+
+
 class Recipe(object):
     """Install scripts
     """
@@ -25,11 +31,11 @@ class Recipe(object):
             '\n '.join(SCRIPT_REQUIRES) + \
             '\n ' + options['packages'] + \
             '\n ' + options.get('output-package', '')
-        self.packages = filter(lambda v: v, map(
-                lambda s: s.strip(), options['packages'].split('\n')))
+        self.packages = string_to_lines(options['packages'])
         self.output_dir = options.get('output', '').strip()
         self.output_package = options.get('output-package', '').strip()
         self.domain = options.get('domain', 'silva').strip()
+        self.products = string_to_lines(options.get('zope-products', ''))
         self.egg = zc.recipe.egg.Egg(buildout, name, options)
 
     def install(self):
@@ -40,7 +46,8 @@ class Recipe(object):
         arguments = {'packages': self.packages,
                      'output_dir': self.output_dir,
                      'output_package': self.output_package,
-                     'domain': self.domain}
+                     'domain': self.domain,
+                     'products': self.products}
 
         scripts.extend(
             zc.buildout.easy_install.scripts(
@@ -53,7 +60,8 @@ class Recipe(object):
                 extra_paths = self.egg.extra_paths,
                 ))
 
-        arguments = {'output_package': self.output_package,}
+        arguments = {'output_package': self.output_package,
+                     'products': self.products}
 
         scripts.extend(
             zc.buildout.easy_install.scripts(
