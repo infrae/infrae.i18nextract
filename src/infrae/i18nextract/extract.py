@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
 
@@ -86,6 +86,8 @@ def extract(packages, output_dir, output_package, domain, products):
         maker.add(formulator_strings(path, domain), path, package)
         maker.add(metadata_strings(path, domain), path, package)
     maker.write()
+
+    return output_file
 
 
 def egg_entry_point(kwargs):

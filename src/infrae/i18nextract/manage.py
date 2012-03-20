@@ -5,13 +5,50 @@
 from optparse import OptionParser
 import os
 import re
+import tarfile
 
 from zope.configuration.name import resolve
 from infrae.i18nextract.utils import load_products
 
 
+po_file_reg = re.compile('(.*)-([a-zA-Z_]{2,5})\.po$')
+
+
+def import_tarball(path, options, package):
+    translations_path = resolve(package).__path__[0]
+
+    tar = tarfile.open(path, "r:gz")
+    for name in tar.getnames():
+        if name.endswith('.po'):
+            match = po_file_reg.search(name.split('/')[-1])
+            if not match:
+                continue # not a .po file
+            domain = match.group(1)
+            language = match.group(2)
+
+            language_path = os.path.join(translations_path, 'i18n', language)
+            if not os.path.isdir(language_path):
+                os.mkdir(language_path)
+            lc_messages_path = os.path.join(language_path, 'LC_MESSAGES')
+            if not os.path.isdir(lc_messages_path):
+                os.mkdir(lc_messages_path)
+            po_path = os.path.join(lc_messages_path, '%s.po' % domain)
+            mo_path = os.path.splitext(po_path)[0] + '.mo'
+
+            content = tar.extractfile(name).read()
+            with open(po_path, 'w') as po_file:
+                print 'Extracting language "%s", domain "%s"' % (
+                        language, domain)
+                po_file.write(content)
+
+            if options.compile:
+                print 'Compiling language "%s", domain "%s".' %(language,domain)
+                os.system('msgfmt -o %s %s' % (mo_path, po_path))
+
+    tar.close()
+
+
 def process_files(path, options):
-    po_file_reg = re.compile('(.*)-([a-z]{2})\.po$')
     for filename in os.listdir(path):
         filename = os.path.join(path, filename)
         if filename.endswith('.po'):
@@ -62,14 +99,22 @@ def merge(output_package, products):
         "-p", "--path", dest="path",
         help="path where the translation to merge are")
     parser.add_option(
+        "-t", "--tarball", dest="tarball", action="store_true",
+        help="the translations are packed in a tarball")
+    parser.add_option(
         "-c", "--compile", dest="compile", action="store_true",
-        help="compile all translations files")
+        help="compile all translation files")
     parser.add_option(
         "-m", "--merge", dest="merge", action="store_true",
         help="merge all templates to in all translation files")
     (options, args) = parser.parse_args()
 
-    if options.path:
+    if options.tarball:
+        if not options.path or not os.path.isfile(options.path):
+            print "You need to specify the location of the tarball"
+            return
+        import_tarball(options.path, options, output_package)
+    elif options.path:
         process_files(options.path, options)
     else:
         if products:
