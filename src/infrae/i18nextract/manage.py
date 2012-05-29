@@ -36,10 +36,11 @@ def import_tarball(path, options, package):
             mo_path = os.path.splitext(po_path)[0] + '.mo'
 
             content = tar.extractfile(name).read()
-            with open(po_path, 'w') as po_file:
-                print 'Extracting language "%s", domain "%s"' % (
-                        language, domain)
-                po_file.write(content)
+            po_file = open(po_path, 'w')
+            print 'Extracting language "%s", domain "%s"' % (
+                language, domain)
+            po_file.write(content)
+            po_file.close()
 
             if options.compile:
                 print 'Compiling language "%s", domain "%s".' %(language,domain)
@@ -48,7 +49,7 @@ def import_tarball(path, options, package):
     tar.close()
 
 
-def process_files(path, options):
+def merge_or_compile_files(path, options):
     for filename in os.listdir(path):
         filename = os.path.join(path, filename)
         if filename.endswith('.po'):
@@ -91,16 +92,18 @@ def process_files(path, options):
                     os.system('msgfmt -o %s %s' % (compiled_filename, filename))
 
 
-def merge(output_package, products):
+def manage(output_package, products):
     """Merge translations for the given packages.
     """
     parser = OptionParser()
     parser.add_option(
         "-p", "--path", dest="path",
-        help="path where the translation to merge are")
+        help="path where the translation to merge are, " \
+            "default to the package '%s'" % output_package)
     parser.add_option(
-        "-t", "--tarball", dest="tarball", action="store_true",
-        help="the translations are packed in a tarball")
+        "-i", "--import-tarball", dest="tarball",
+        help="the translations are packed in a tarball, " \
+            "and will be imported in the package '%s'" % output_package)
     parser.add_option(
         "-c", "--compile", dest="compile", action="store_true",
         help="compile all translation files")
@@ -110,12 +113,12 @@ def merge(output_package, products):
     (options, args) = parser.parse_args()
 
     if options.tarball:
-        if not options.path or not os.path.isfile(options.path):
+        if not options.tarball or not os.path.isfile(options.tarball):
             print "You need to specify the location of the tarball"
             return
-        import_tarball(options.path, options, output_package)
+        import_tarball(options.tarball, options, output_package)
     elif options.path:
-        process_files(options.path, options)
+        merge_or_compile_files(options.path, options)
     else:
         if products:
             load_products(products)
@@ -126,8 +129,8 @@ def merge(output_package, products):
             if os.path.isdir(i18n_path):
                 print "Processing package %s/%s..." % (
                     output_package, i18n_part)
-                process_files(i18n_path, options)
+                merge_or_compile_files(i18n_path, options)
 
 
 def egg_entry_point(kwargs):
-    return merge(**kwargs)
+    return manage(**kwargs)
