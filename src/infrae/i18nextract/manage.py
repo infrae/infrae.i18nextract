@@ -5,35 +5,54 @@
 from optparse import OptionParser
 import os
 import re
+import sys
 import tarfile
 
 from zope.configuration.name import resolve
 from infrae.i18nextract.utils import load_products
 
 
-po_file_reg = re.compile('(.*)-([a-zA-Z_]{2,5})\.po$')
+po_file_reg = re.compile('^(.*)-([a-zA-Z_]{2,5})\.po$')
+tar_file_reg = re.compile('^([^/]*)/([a-zA-Z_]{2,5})\.po$')
 
 
-def import_tarball(path, options, package):
-    translations_path = resolve(package).__path__[0]
+def export_tarball(tarball, path, domain):
+    tar = tarfile.open(tarball, "w:gz")
+    pot_file = os.path.join(path, domain + '.pot')
+    if os.path.isfile(pot_file):
+        tar.add(pot_file, arcname=domain + '/' + domain + '.pot')
 
-    tar = tarfile.open(path, "r:gz")
+    for language in os.listdir(path):
+        po_file = os.path.join(path, language, 'LC_MESSAGES', domain + '.po')
+        if not os.path.isfile(po_file):
+            continue
+        tar.add(po_file, arcname=domain + '/' + language + '.po')
+
+    tar.close()
+
+
+def import_tarball(tarball, path, options):
+    if not os.path.isfile(tarball):
+        print "Invalid import tarball: ", tarball
+        sys.exit(-1)
+
+    tar = tarfile.open(tarball, "r:gz")
     for name in tar.getnames():
         if name.endswith('.po'):
-            match = po_file_reg.search(name.split('/')[-1])
+            match = tar_file_reg.search(name)
             if not match:
                 continue # not a .po file
             domain = match.group(1)
             language = match.group(2)
 
-            language_path = os.path.join(translations_path, 'i18n', language)
+            language_path = os.path.join(path, language)
             if not os.path.isdir(language_path):
                 os.mkdir(language_path)
             lc_messages_path = os.path.join(language_path, 'LC_MESSAGES')
             if not os.path.isdir(lc_messages_path):
                 os.mkdir(lc_messages_path)
-            po_path = os.path.join(lc_messages_path, '%s.po' % domain)
-            mo_path = os.path.splitext(po_path)[0] + '.mo'
+            po_path = os.path.join(lc_messages_path, domain + '.po')
+            mo_path = os.path.join(lc_messages_path, domain + '.mo')
 
             content = tar.extractfile(name).read()
             po_file = open(po_path, 'w')
@@ -43,7 +62,8 @@ def import_tarball(path, options, package):
             po_file.close()
 
             if options.compile:
-                print 'Compiling language "%s", domain "%s".' %(language,domain)
+                print 'Compiling language "%s", domain "%s".' % (
+                    language, domain)
                 os.system('msgfmt -o %s %s' % (mo_path, po_path))
 
     tar.close()
@@ -92,43 +112,45 @@ def merge_or_compile_files(path, options):
                     os.system('msgfmt -o %s %s' % (compiled_filename, filename))
 
 
-def manage(output_package, products):
+def manage(output_package, products, domain):
     """Merge translations for the given packages.
     """
     parser = OptionParser()
     parser.add_option(
         "-p", "--path", dest="path",
-        help="path where the translation to merge are, " \
-            "default to the package '%s'" % output_package)
-    parser.add_option(
-        "-i", "--import-tarball", dest="tarball",
-        help="the translations are packed in a tarball, " \
-            "and will be imported in the package '%s'" % output_package)
+        help=("path where the translation to merge are, "
+              "default to the package '%s'" % output_package))
     parser.add_option(
         "-c", "--compile", dest="compile", action="store_true",
         help="compile all translation files")
     parser.add_option(
         "-m", "--merge", dest="merge", action="store_true",
         help="merge all templates to in all translation files")
+    parser.add_option(
+        "-i", "--import-tarball", dest="import_tarball",
+        help=("the translations are packed in a tarball, "
+              "and will be imported in the package '%s'" % output_package))
+    parser.add_option(
+        "-e", "--export-tarball", dest="export_tarball")
     (options, args) = parser.parse_args()
 
-    if options.tarball:
-        if not options.tarball or not os.path.isfile(options.tarball):
-            print "You need to specify the location of the tarball"
-            return
-        import_tarball(options.tarball, options, output_package)
-    elif options.path:
-        merge_or_compile_files(options.path, options)
+    if products:
+        load_products(products)
+    if options.path:
+        path = options.path
     else:
-        if products:
-            load_products(products)
         python_package = resolve(output_package)
         path = os.path.dirname(python_package.__file__)
-        for i18n_part in ('i18n', 'locales'):
-            i18n_path = os.path.join(path, i18n_part)
-            if os.path.isdir(i18n_path):
-                print "Processing package %s/%s..." % (
-                    output_package, i18n_part)
+
+    for i18n_part in ('i18n', 'locales'):
+        i18n_path = os.path.join(path, i18n_part)
+        if os.path.isdir(i18n_path):
+            print "Processing package %s..." % i18n_path
+            if options.import_tarball:
+                import_tarball(options.import_tarball, i18n_path, options)
+            elif options.export_tarball:
+                export_tarball(options.export_tarball, i18n_path, domain)
+            else:
                 merge_or_compile_files(i18n_path, options)
 
 

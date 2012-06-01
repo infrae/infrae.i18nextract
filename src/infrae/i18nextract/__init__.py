@@ -61,26 +61,12 @@ class Recipe(object):
                 ))
 
         arguments = {'output_package': self.output_package,
-                     'products': self.products}
+                     'products': self.products,
+                     'domain': self.domain}
         scripts.extend(
             zc.buildout.easy_install.scripts(
                 [('%s-manage'% self.name,
                   'infrae.i18nextract.manage',
-                  'egg_entry_point')],
-                ws, self.options['executable'],
-                self.buildout['buildout']['bin-directory'],
-                arguments = arguments,
-                extra_paths = self.egg.extra_paths,
-                ))
-
-        arguments = {'packages': self.packages,
-                     'output_dir': self.output_dir,
-                     'package': self.output_package,
-                     'domain': self.domain}
-        scripts.extend(
-            zc.buildout.easy_install.scripts(
-                [('%s-export_tarball'% self.name,
-                  'infrae.i18nextract.export_tarball',
                   'egg_entry_point')],
                 ws, self.options['executable'],
                 self.buildout['buildout']['bin-directory'],
