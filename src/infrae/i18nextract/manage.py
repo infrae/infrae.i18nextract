@@ -13,7 +13,7 @@ from infrae.i18nextract.utils import load_products
 
 
 po_file_reg = re.compile('^(.*)-([a-zA-Z_]{2,5})\.po$')
-tar_file_reg = re.compile('^([^/]*)/([a-zA-Z_]{2,5})\.po$')
+tar_file_reg = re.compile('^([^/]*)/.*-([a-zA-Z_]{2,5})\.po$')
 
 
 def export_tarball(tarball, path, domain):
