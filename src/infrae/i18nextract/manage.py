@@ -16,11 +16,15 @@ po_file_reg = re.compile('^(.*)-([a-zA-Z_]{2,5})\.po$')
 tar_file_reg = re.compile('^([^/]*)/.*-([a-zA-Z_]{2,5})\.po$')
 
 
-def export_tarball(tarball, path, domain):
+def export_tarball(tarball, path, domain, pot_only=False):
     tar = tarfile.open(tarball, "w:gz")
     pot_file = os.path.join(path, domain + '.pot')
     if os.path.isfile(pot_file):
         tar.add(pot_file, arcname=domain + '/' + domain + '.pot')
+
+    if pot_only:
+        tar.close()
+        return
 
     for language in os.listdir(path):
         po_file = os.path.join(path, language, 'LC_MESSAGES', domain + '.po')
@@ -131,7 +135,11 @@ def manage(output_package, products, domain):
         help=("the translations are packed in a tarball, "
               "and will be imported in the package '%s'" % output_package))
     parser.add_option(
-        "-e", "--export-tarball", dest="export_tarball")
+        "-e", "--export-tarball", dest="export_tarball",
+        help=("a tarball will be created containing the translations"))
+    parser.add_option(
+        "--pot-only", dest="pot_only", action='store_true', default=False,
+        help=("apply the action only on the pot file"))
     (options, args) = parser.parse_args()
 
     if products:
@@ -149,7 +157,9 @@ def manage(output_package, products, domain):
             if options.import_tarball:
                 import_tarball(options.import_tarball, i18n_path, options)
             elif options.export_tarball:
-                export_tarball(options.export_tarball, i18n_path, domain)
+                export_tarball(
+                    options.export_tarball, i18n_path, domain,
+                    pot_only=options.pot_only)
             else:
                 merge_or_compile_files(i18n_path, options)
 
