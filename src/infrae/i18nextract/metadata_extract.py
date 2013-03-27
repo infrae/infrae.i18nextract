@@ -9,7 +9,7 @@ from xml.sax.handler import feature_namespaces
 from xml.sax.handler import ContentHandler
 import traceback
 
-TRANSLATABLE_PROPERTIES = ['title', 'description']
+TRANSLATABLE_ELEMENTS = ['title', 'description']
 
 class NonMetadataXMLError(Exception):
     pass
@@ -45,6 +45,7 @@ class MetadataXMLHandler(ContentHandler):
         self._locator = None
         self._filepath = filepath
         self._i18n_domain = i18n_domain
+        self._characters = None
 
     def setDocumentLocator(self, locator):
         self._locator = locator
@@ -69,22 +70,43 @@ class MetadataXMLHandler(ContentHandler):
     def getAttrValue(self, name):
         return self._attr_stack[-1].get((None, name))
 
+    def addMessageToCatalog(self, message):
+        message_id = Message(message, domain=self._i18n_domain)
+        if not self._catalog.has_key(message_id):
+            self._catalog[message_id] = []
+        number = self._locator.getLineNumber()
+        self._catalog[message_id].append((self._filepath, number))
+
+    def characters(self, chars):
+        if self._characters is not None:
+            self._characters.append(chars)
+
     def startElementNS(self, name, qname, attrs):
         self.enterTag(name, attrs)
         if not self.isInTag('metadata_set'):
+            # Top level tag must be metadata_set
+            raise NonMetadataXMLError
+        if self._characters is not None:
+            # Tag collecting data (title, description) should not have sub-tags
             raise NonMetadataXMLError
         if self.isInTag('field_values') and self.isInTag('value'):
-            for name in TRANSLATABLE_PROPERTIES:
+            # If we have a tag value inside a tag field_values, check
+            # for attribute key. If key is title or description,
+            # extract its value.
+            for name in TRANSLATABLE_ELEMENTS:
                 if self.hasAttrValue('key', name):
-                    message_id = Message(self.getAttrValue('value'),
-                                         domain=self._i18n_domain)
-                    if not self._catalog.has_key(message_id):
-                        self._catalog[message_id] = []
-                    number = self._locator.getLineNumber()
-                    self._catalog[message_id].append((self._filepath, number))
+                    self.addMessageToCatalog(self.getAttrValue('value'))
+        if name in zip([None] * len(TRANSLATABLE_ELEMENTS),
+                       TRANSLATABLE_ELEMENTS):
+            # If we have a tag title or description, collect its characters.
+            self._characters = []
 
     def endElementNS(self, name, qname):
         self.exitTag(name)
+        if self._characters is not None:
+            # Add a message current collected characters
+            self.addMessageToCatalog(''.join(self._characters).strip())
+            self._characters = None
 
 
 def extract_ids(filename, catalog, i18n_domain):
