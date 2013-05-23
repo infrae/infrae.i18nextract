@@ -1,10 +1,11 @@
 Changes
 =======
 
-1.4 (unreleased)
-----------------
+1.3.1 (2013-05-23)
+------------------
 
-* ...
+* Add support to extract the ``title`` and ``description`` fields from
+  the Silva Metadata files.
 
 1.3 (2012-08-17)
 ----------------
