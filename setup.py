@@ -11,7 +11,7 @@ name = 'infrae.i18nextract'
 
 setup(
     name = name,
-    version='1.3.1',
+    version='1.4dev',
     author='Sylvain Viollon',
     author_email='info@infrae.com',
     description='Buildout recipe to extract i18n files in Silva',
