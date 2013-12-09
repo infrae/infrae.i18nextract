@@ -68,3 +68,9 @@ Two scripts are created:
 The last script requires to have the commands `msgfmt` and `msgmerge`
 installed on the system (available in gettext).
 
+
+Latest version
+--------------
+
+The latest version is available in a `Git repository
+<https://github.com/infrae/infrae.i18nextract>`_.
