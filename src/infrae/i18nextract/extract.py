@@ -80,7 +80,7 @@ def extract(packages, output_dir, output_package, domain, products):
         python_package = resolve(package)
         path = os.path.dirname(python_package.__file__)
 
-        maker.add(py_strings(path, domain), path, package)
+        maker.add(py_strings(path, domain, verify_domain=True), path, package)
         maker.add(tal_strings(path, domain), path, package)
         # For Chameleon templates
         maker.add(tal_strings(path, domain, filePattern='*.cpt'), path, package)
